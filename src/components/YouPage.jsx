@@ -116,18 +116,28 @@ export default function YouPage({ onNavigateToPremium }) {
 
         {/* This Week Stats */}
         <h3 className="text-sm font-semibold text-strava-dark mb-3">This week</h3>
-        <div className="flex gap-8 mb-6">
+        <div className="flex gap-8 mb-4">
           <div>
             <p className="text-xs text-strava-medium mb-1">Distance</p>
-            <p className="text-2xl font-semibold text-strava-dark">0 mi</p>
+            <p className="text-2xl font-semibold text-strava-dark">25 mi</p>
           </div>
           <div>
             <p className="text-xs text-strava-medium mb-1">Time</p>
-            <p className="text-2xl font-semibold text-strava-dark">0 m</p>
+            <p className="text-2xl font-semibold text-strava-dark">4h 16m</p>
           </div>
           <div>
+            <p className="text-xs text-strava-medium mb-1">Avg Pace</p>
+            <p className="text-2xl font-semibold text-strava-dark">10:14</p>
+          </div>
+        </div>
+        <div className="flex gap-8 mb-6">
+          <div>
             <p className="text-xs text-strava-medium mb-1">Elev Gain</p>
-            <p className="text-2xl font-semibold text-strava-dark">0 ft</p>
+            <p className="text-2xl font-semibold text-strava-dark">423 ft</p>
+          </div>
+          <div>
+            <p className="text-xs text-strava-medium mb-1">Activities</p>
+            <p className="text-2xl font-semibold text-strava-dark">4</p>
           </div>
         </div>
 
