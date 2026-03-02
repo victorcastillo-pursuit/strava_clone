@@ -1,3 +1,7 @@
+// Increment this version when data structure changes to trigger localStorage migration
+const DATA_VERSION = '1.1.0';
+const VERSION_KEY = 'strava_data_version';
+
 const KEYS = {
   USERS: 'strava_users',
   ACTIVITIES: 'strava_activities',
@@ -67,4 +71,24 @@ export function clearAll() {
   Object.values(KEYS).forEach((key) => localStorage.removeItem(key));
 }
 
-export { KEYS };
+export function getDataVersion() {
+  return localStorage.getItem(VERSION_KEY);
+}
+
+export function setDataVersion(version) {
+  localStorage.setItem(VERSION_KEY, version);
+}
+
+export function shouldMigrateData() {
+  const storedVersion = getDataVersion();
+  return storedVersion !== DATA_VERSION;
+}
+
+export function migrateData() {
+  // Clear all existing data
+  clearAll();
+  // Set new version
+  setDataVersion(DATA_VERSION);
+}
+
+export { KEYS, DATA_VERSION };

@@ -9,6 +9,10 @@ import {
   getKudos,
   getComments,
   getCurrentUser,
+  shouldMigrateData,
+  migrateData,
+  setDataVersion,
+  DATA_VERSION,
 } from './localStorage.js';
 
 const USERS = [
@@ -161,17 +165,17 @@ const ACTIVITIES = [
   {
     id: 'act-15',
     userId: 'user-1',
-    title: 'Cold morning run',
-    description: 'Brrr! 🥶',
+    title: 'Fun Run',
+    description: 'When the run feels more like a sightseeing tour 👌📍 grounds of the U.S. Open',
     type: 'Run',
-    distance: 4.0,
+    distance: 5.12,
     distanceUnit: 'mi',
-    duration: 2696, // 44m 56s (11:14/mile pace)
+    duration: 3645, // 1h 0m 45s (approx 11:51/mi pace)
     date: daysAgo(0, 7, 15),
     timestamp: daysAgo(0, 7, 15),
-    location: 'Prospect Park, Brooklyn',
-    device: 'Apple Watch',
-    media: ['/highlights/victor_run.jpg'],
+    location: 'Queens, New York',
+    device: 'Strava App',
+    media: ['/highlights/usopen_map.png', '/highlights/victor_usopen_2.PNG'],
     mapImage: '/maps/victor-cold-run.png',
   },
   // Juan Franco's activities
@@ -355,12 +359,12 @@ const KUDOS = [
     timestamp: daysAgo(6, 13, i * 2),
   })),
 
-  // act-15 (Victor cold morning run - NEW!) - 15 kudos
-  ...Array.from({ length: 15 }, (_, i) => ({
+  // act-15 (Victor Fun Run at US Open) - 48 kudos
+  ...Array.from({ length: 48 }, (_, i) => ({
     id: `k-act15-${i}`,
     activityId: 'act-15',
     userId: i < 3 ? ['user-2', 'user-4', 'user-5'][i] : `ghost-${i}`,
-    timestamp: daysAgo(0, 8, i * 3),
+    timestamp: daysAgo(0, 8, i * 2),
   })),
 
   // act-10 (Juan cycling) - 26 kudos
@@ -475,14 +479,15 @@ const COMMENTS = [
   { id: 'c-act9-4', activityId: 'act-9', userId: 'user-1', text: 'Game changer for productivity honestly', timestamp: daysAgo(6, 16, 0) },
   { id: 'c-act9-5', activityId: 'act-9', userId: 'user-4', text: 'Facts! Especially when debugging 😅', timestamp: daysAgo(6, 17, 0) },
 
-  // act-15 (Victor cold morning run - NEW!) - 7 comments
-  { id: 'c-act15-1', activityId: 'act-15', userId: 'user-2', text: 'That cold weather face! 😂 You\'re a warrior', timestamp: daysAgo(0, 8, 0) },
-  { id: 'c-act15-2', activityId: 'act-15', userId: 'user-4', text: 'Brrr is right! How cold was it?', timestamp: daysAgo(0, 8, 30) },
-  { id: 'c-act15-3', activityId: 'act-15', userId: 'user-5', text: 'Respect for getting out there in this weather 🥶', timestamp: daysAgo(0, 9, 0) },
-  { id: 'c-act15-4', activityId: 'act-15', userId: 'user-1', text: '28 degrees! But you warm up after mile 1', timestamp: daysAgo(0, 9, 30) },
-  { id: 'c-act15-5', activityId: 'act-15', userId: 'user-2', text: 'Those winter miles hit different 💪', timestamp: daysAgo(0, 10, 0) },
-  { id: 'c-act15-6', activityId: 'act-15', userId: 'user-4', text: 'Solid pace in that cold too!', timestamp: daysAgo(0, 10, 30) },
-  { id: 'c-act15-7', activityId: 'act-15', userId: 'user-5', text: 'Need your cold weather running tips!', timestamp: daysAgo(0, 11, 0) },
+  // act-15 (Victor Fun Run at US Open) - 8 comments
+  { id: 'c-act15-1', activityId: 'act-15', userId: 'user-2', text: 'Wait, you ran at the US Open grounds?! 🎾 That\'s incredible!', timestamp: daysAgo(0, 8, 0) },
+  { id: 'c-act15-2', activityId: 'act-15', userId: 'user-4', text: 'Dude that selfie!! The stadium in the background is so cool', timestamp: daysAgo(0, 8, 30) },
+  { id: 'c-act15-3', activityId: 'act-15', userId: 'user-5', text: 'This is such a unique running spot! Did you get to see the courts?', timestamp: daysAgo(0, 9, 0) },
+  { id: 'c-act15-4', activityId: 'user-1', text: 'Yeah! The whole complex is open for running. So many cool photo ops 📸', timestamp: daysAgo(0, 9, 30) },
+  { id: 'c-act15-5', activityId: 'act-15', userId: 'user-2', text: 'Sightseeing tour indeed! Adding this to my Queens running list 🗺️', timestamp: daysAgo(0, 10, 0) },
+  { id: 'c-act15-6', activityId: 'act-15', userId: 'user-4', text: 'That\'s going on my bucket list. Tennis + running = perfect combo!', timestamp: daysAgo(0, 10, 30) },
+  { id: 'c-act15-7', activityId: 'act-15', userId: 'user-7', text: 'Love running in unexpected places like this! Great find 🌟', timestamp: daysAgo(0, 11, 0) },
+  { id: 'c-act15-8', activityId: 'act-15', userId: 'user-6', text: 'The grounds are beautiful! I need to bring my camera there 📷', timestamp: daysAgo(0, 11, 30) },
 
   // act-10 (Juan cycling) - 6 comments
   { id: 'c-5', activityId: 'act-10', userId: 'user-1', text: 'That headwind is no joke lol', timestamp: daysAgo(4, 12, 0) },
@@ -550,6 +555,17 @@ const COMMENTS = [
 ];
 
 export function seedData() {
+  // Check if data version has changed - if so, clear and reseed
+  if (shouldMigrateData()) {
+    migrateData();
+    setUsers(USERS);
+    setActivities(ACTIVITIES);
+    setKudos(KUDOS);
+    setComments(COMMENTS);
+    setCurrentUser({ id: 'user-1', username: 'Victor Castillo', isPremium: false });
+    return;
+  }
+
   // Seed if empty; otherwise migrate existing data for new fields/content.
   if (getUsers().length === 0) {
     setUsers(USERS);
@@ -557,6 +573,7 @@ export function seedData() {
     setKudos(KUDOS);
     setComments(COMMENTS);
     setCurrentUser({ id: 'user-1', username: 'Victor Castillo', isPremium: false });
+    setDataVersion(DATA_VERSION); // Set version after initial seed
     return;
   }
 
@@ -609,7 +626,7 @@ export function seedData() {
   const mediaByActivityId = {
     'act-1': ['/highlights/rene-jersey.png', '/highlights/rene-ice-1.png', '/highlights/rene-ice-2.png'],
     'act-9': ['/highlights/juan-4779.jpg', '/highlights/victor-7641.jpg', '/highlights/victor-9901.jpg'],
-    'act-15': ['/highlights/victor_run.jpg'],
+    'act-15': ['/highlights/usopen_map.png', '/highlights/victor_usopen_2.PNG'],
     'act-12': ['/highlights/sarah_swimming.jpeg'],
     'act-10': ['/highlights/juan-franco-1.png', '/highlights/juan-4779.jpg'],
     'act-11': ['/highlights/juan-franco-2.png', '/highlights/juan-4760.jpg'],
@@ -712,17 +729,17 @@ export function seedData() {
         {
           id: 'act-15',
           userId: 'user-1',
-          title: 'Cold morning run',
-          description: 'Brrr! 🥶',
+          title: 'Fun Run',
+          description: 'When the run feels more like a sightseeing tour 👌📍 grounds of the U.S. Open',
           type: 'Run',
-          distance: 4.0,
+          distance: 5.12,
           distanceUnit: 'mi',
-          duration: 2696, // 44m 56s (11:14/mile pace)
+          duration: 3645, // 1h 0m 45s (approx 11:51/mi pace)
           date: daysAgo(0, 7, 15),
           timestamp: daysAgo(0, 7, 15),
-          location: 'Prospect Park, Brooklyn',
-          device: 'Apple Watch',
-          media: ['/highlights/victor_run.jpg'],
+          location: 'Queens, New York',
+          device: 'Strava App',
+          media: ['/highlights/usopen_map.png', '/highlights/victor_usopen_2.PNG'],
           mapImage: '/maps/victor-cold-run.png',
         },
       ]
@@ -820,6 +837,9 @@ export function seedData() {
   if (currentUser && removedUserIds.has(currentUser.id)) {
     setCurrentUser({ id: 'user-1', username: 'Victor Castillo', isPremium: false });
   }
+
+  // Ensure version is set after migration
+  setDataVersion(DATA_VERSION);
 }
 
 export function resetData() {
@@ -828,6 +848,7 @@ export function resetData() {
   setKudos(KUDOS);
   setComments(COMMENTS);
   setCurrentUser({ id: 'user-1', username: 'Victor Castillo', isPremium: false });
+  setDataVersion(DATA_VERSION);
 }
 
 export { USERS, ACTIVITIES };
