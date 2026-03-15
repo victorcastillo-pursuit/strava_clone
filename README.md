@@ -4,6 +4,18 @@ A freemium social fitness platform where users log workouts, follow friends, and
 
 ---
 
+## Screenshots
+
+**Activity feed with kudos, comments, route maps, and photos**
+
+![Activity Feed](./public/screenshots/feed.png)
+
+**Premium paywall — exact recreation of Strava's upgrade modal**
+
+![Premium Paywall](./public/screenshots/paywall.png)
+
+---
+
 ## The Problem
 
 Fitness enthusiasts lack a simple, social way to track workouts and stay motivated long-term. Existing solutions are either too complex, too expensive upfront, or lack the community features that drive retention — users with social connections show **3x higher retention** than solo trackers.
